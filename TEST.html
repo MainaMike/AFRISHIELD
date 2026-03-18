@@ -9,4 +9,141 @@
     <h1>Test Page</h1>
     <p>This is a placeholder.</p>
   </body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Family Bundle Builder</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+    h1, h2 { margin-bottom: 10px; }
+    input, button { padding: 8px; margin: 5px 0; width: 100%; }
+    .row { display: flex; gap: 10px; }
+    .row input { flex: 1; }
+    .row button { width: auto; }
+    .card { border: 1px solid #ddd; padding: 10px; border-radius: 8px; margin-top: 10px; }
+    .flex { display: flex; gap: 10px; flex-wrap: wrap; }
+    button { cursor: pointer; background: #333; color: white; border: none; }
+    button:hover { background: #555; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Family Bundle Builder</h1>
+
+  <h2>1) Account Details</h2>
+  <input id="firstName" placeholder="First Name">
+  <input id="lastName" placeholder="Last Name">
+  <input id="email" placeholder="Email">
+  <input id="phone" placeholder="Phone">
+
+  <h2>2) Dependents</h2>
+  <div class="row">
+    <input id="depName" placeholder="Name">
+    <input id="depAge" placeholder="Age">
+    <input id="depRel" placeholder="Relationship">
+    <button type="button" onclick="addDependent()">Add</button>
+  </div>
+  <ul id="depList"></ul>
+
+  <h2>3) Select Covers</h2>
+  <div class="flex">
+    <label><input type="checkbox" value="health" checked> Health</label>
+    <label><input type="checkbox" value="life" checked> Life</label>
+    <label><input type="checkbox" value="education" checked> Education</label>
+    <label><input type="checkbox" value="retirement" checked> Retirement</label>
+  </div>
+
+  <h2>4) Budget</h2>
+  <input id="budget" type="number" value="1200">
+
+  <button type="button" onclick="calculate()">Calculate</button>
+
+  <div class="card">
+    <h2>Results</h2>
+    <div id="results"></div>
+  </div>
+</div>
+
+<script>
+let dependents = [];
+
+function addDependent() {
+  const name = document.getElementById('depName').value;
+  const age = document.getElementById('depAge').value;
+  const rel = document.getElementById('depRel').value;
+
+  if (!name) {
+    alert("Please enter dependent name");
+    return;
+  }
+
+  dependents.push({ name, age, rel });
+  renderDependents();
+
+  // clear inputs
+  document.getElementById('depName').value = '';
+  document.getElementById('depAge').value = '';
+  document.getElementById('depRel').value = '';
+}
+
+function renderDependents() {
+  const list = document.getElementById('depList');
+  list.innerHTML = '';
+
+  dependents.forEach((d, i) => {
+    const li = document.createElement('li');
+    li.textContent = `${d.name} (${d.rel}, ${d.age})`;
+    list.appendChild(li);
+  });
+}
+
+function getSelectedCovers() {
+  const checkboxes = document.querySelectorAll('input[type=checkbox]:checked');
+  return Array.from(checkboxes).map(cb => cb.value);
+}
+
+const BASE_WEIGHTS = {
+  health: 0.45,
+  life: 0.25,
+  education: 0.15,
+  retirement: 0.15
+};
+
+function calculate() {
+  const covers = getSelectedCovers();
+  const budget = parseFloat(document.getElementById('budget').value);
+
+  if (covers.length === 0) {
+    alert("Please select at least one cover");
+    return;
+  }
+
+  if (isNaN(budget) || budget <= 0) {
+    alert("Please enter a valid budget");
+    return;
+  }
+
+  let totalWeight = 0;
+  covers.forEach(c => totalWeight += BASE_WEIGHTS[c]);
+
+  let output = '';
+
+  covers.forEach(c => {
+    let percent = (BASE_WEIGHTS[c] / totalWeight) * 100;
+    let amount = (percent / 100) * budget;
+
+    if (c === 'education') amount *= (1 + dependents.length * 0.2);
+    if (c === 'life') amount *= (1 + dependents.length * 0.15);
+    if (c === 'health') amount *= (1 + dependents.length * 0.1);
+
+    output += `<p><strong>${c.toUpperCase()}</strong>: ${percent.toFixed(1)}% → ${amount.toFixed(2)}</p>`;
+  });
+
+  document.getElementById('results').innerHTML = output;
+}
+</script>
+</body>
 </html>
